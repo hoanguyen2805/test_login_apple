@@ -195,8 +195,6 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         Barryvdh\Debugbar\ServiceProvider::class,
-        // Laravel\Socialite\SocialiteServiceProvider::class,
-        // \SocialiteProviders\Manager\ServiceProvider::class,
     ],
 
     /*
