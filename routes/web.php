@@ -16,3 +16,11 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/api/v1/login-apple', function () {
+    return view('login');
+});
+
+Route::get('/api/v1/login-callback', function () {
+    return view('callback');
+});
