@@ -24,12 +24,17 @@ class LoginController extends Controller
     public function callback(Request $request)
     {
         // get abstract user object, not persisted
-        $user = Socialite::driver("sign-in-with-apple")
-        ->user();
+        //$user = Socialite::driver("sign-in-with-apple")->user();
 
         // or use Socialiter to automatically manage user resolution and persistence
         // $user = Socialiter::driver("sign-in-with-apple")
         // ->login();
+
+        try {
+            $user = Socialite::driver('sign-in-with-apple')->user();
+        } catch (\Exception $e) {
+            return redirect('/login')->withErrors(['error' => 'Something went wrong with Apple Sign In']);
+        }
 
         dd($user);
     }

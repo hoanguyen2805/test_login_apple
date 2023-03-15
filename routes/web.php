@@ -19,4 +19,4 @@ Route::get('/', function () {
 
 Route::get('/api/v1/login-apple', [LoginController::class, 'login'])->name('login');
 
-Route::get('/api/v1/login-callback', [LoginController::class, 'callback']);
+Route::get('/api/v1/login-callback', [LoginController::class, 'callback'])->name('callback');
