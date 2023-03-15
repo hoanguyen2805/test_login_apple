@@ -1,66 +1,181 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Step 1: Register an App ID
+- Input Description = ""
+- Input Identifier = ""
+- Sign In With Apple -> Edit -> Enable as a primary App ID -> Save -> continue -> register
 
-## About Laravel
+## Step 2: Register a Services ID
+- Input Description = "NTA App Sign In Apple"
+- Input Identifier = "com.nitrotechasia.server.staging"
+- Check Enabled Sign In With Apple -> Configure
+    ```code
+	// Primary App ID
+	select App ID created above
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+	// Web Domain 
+	login-apple.herokuapp.com
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+	// Return URLs
+	https://login-apple.herokuapp.com/api/v1/login-callback
+    ```
+   -> save -> continue -> register
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Step 3: Register a New Key
+- Input Key Name
+- Check Sign In With Apple -> Configure
+    ```code
+	// Choose a Primary App ID
+	select App ID created above
+    ```
+   -> save -> continue -> register
 
-## Learning Laravel
+   -> Download file key .p8 -> `Rename file to key.txt`
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Step 4: Create Client Secret
+- Install ruby (linux)
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+- Install JWT GEM
+```bash
+sudo gem install jwt
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- Create file `client_sectet.rb` with content:
 
-## Laravel Sponsors
+```json
+require 'jwt'
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+key_file = 'key.txt'    // file .p8 rename
+team_id = ''
+client_id = '' 
+key_id = ''     // key file .p8
 
-### Premium Partners
+ecdsa_key = OpenSSL::PKey::EC.new IO.read key_file
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+headers = {
+'kid' => key_id
+}
 
-## Contributing
+claims = {
+    'iss' => team_id,
+    'iat' => Time.now.to_i,
+    'exp' => Time.now.to_i + 86400*180,
+    'aud' => 'https://appleid.apple.com',
+    'sub' => client_id,
+}
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+token = JWT.encode claims, ecdsa_key, 'ES256', headers
 
-## Code of Conduct
+puts token
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+> Note: 
+>
+> `team_id`: This can be found on the top-right corner when logged into your Apple Developer account, right under your name.
+>
+> `client_id`: This is the identifier from the Service Id created in step 2 above, for example com.example.service
+>
+> `key_id`: This is the identifier of the private key created in step 3 above.
 
-## Security Vulnerabilities
+- Save the file and run it from the terminal. It will spit out a JWT which is your client secret, which you will need to add to your .env file in the next step.
+```code
+   ruby client_secret.rb   -> copy result command - client_secret
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-## License
+## Laravel
+- Config .env
+```
+APP_ENV=production
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+SIGN_IN_WITH_APPLE_LOGIN="/api/v1/login-apple"
+SIGN_IN_WITH_APPLE_REDIRECT="/api/v1/login-callback"
+SIGN_IN_WITH_APPLE_CLIENT_ID="com.nitrotechasia.server.staging"
+SIGN_IN_WITH_APPLE_CLIENT_SECRET="" // your app's client secret as calculated in step 4
+```
+
+- Install the composer package:
+```bash
+composer require genealabs/laravel-sign-in-with-apple
+```
+
+- routes/web.php
+```php
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LoginController;
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+Route::get('/api/v1/login-apple', [LoginController::class, 'login'])->name('login');
+
+Route::post('/api/v1/login-callback', [LoginController::class, 'callback'])->name('callback');
+```
+
+
+- app/Http/Middleware/VerifyCsrfToken.php
+```php
+    protected $except = [
+        "/api/v1/login-callback",
+    ];
+```
+
+- app/Http/Controllers/LoginController.php
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Controllers\Controller;
+use Laravel\Socialite\Facades\Socialite;
+use GeneaLabs\LaravelSocialiter\Facades\Socialiter;
+use Illuminate\Http\Request;
+
+class LoginController extends Controller
+{
+    public function __construct()
+    {
+    }
+
+    public function login()
+    {
+        return Socialite::driver("sign-in-with-apple")
+        ->scopes(["name", "email"])
+        ->redirect();
+    }
+
+    public function callback(Request $request)
+    {
+        // get abstract user object, not persisted
+        $user = Socialite::driver("sign-in-with-apple")->user();
+
+        // or use Socialiter to automatically manage user resolution and persistence
+        // $user = Socialiter::driver("sign-in-with-apple")
+        // ->login();
+
+        dd($user);
+    }
+}
+
+```
+
+- resources/views/welcome.blade.php
+```html
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Laravel</title>
+    </head>
+    <body class="antialiased">
+        <form action="{{ route('login') }}">
+            @csrf
+            @signInWithApple("black", true, "sign-in", 6)
+        </form>
+        
+    </body>
+</html>
+
+```
