@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\LoginController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -17,10 +17,6 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/api/v1/login-apple', function () {
-    return view('login');
-});
+Route::get('/api/v1/login-apple', [LoginController::class, 'login'])->name('login');
 
-Route::get('/api/v1/login-callback', function () {
-    return view('callback');
-});
+Route::get('/api/v1/login-callback', [LoginController::class, 'callback']);
